@@ -47,17 +47,7 @@ class VideoConferenceService:
         self.fileName_normal4 = self.config.get(section_ftp, 'fileName_normal4')
         self.fileName_allCity = self.config.get(section_ftp, 'fileName_allCity')
 
-        # 日志
-        self.logger = logging.getLogger(__name__)
-        self.logger.setLevel(level=logging.INFO)
-        handler = logging.FileHandler('%slog.log' % self.local_dir)
-        handler.setLevel(logging.INFO)
-        formatter = logging.Formatter('%(asctime)s - %(filename)s - %(levelname)s - %(message)s')
-        handler.setFormatter(formatter)
-        console = logging.StreamHandler()
-        console.setLevel(logging.INFO)
-        self.logger.addHandler(handler)
-        self.logger.addHandler(console)
+
 
     def get_file_info(self):
         """
@@ -148,6 +138,7 @@ class VideoConferenceService:
         # 2. 下载指定文件swell.gif   SWH2.gif   SWH4.gif  SWH6.gif
 
         for remote_file in remote_files:
+
             is_success = self.sftp_Manager.sftp_download_one_file(sftp_manager_instance, self.local_dir,
                                                                   self.target_normal, remote_file,
                                                                   remote_file)
@@ -174,11 +165,13 @@ class VideoConferenceService:
         for file in file_list:
             if file[0:2] == 'EC':
                 EC_file_list.append(file)
-
+        # time = 0
         #4.2按照文件名从大到小排序,取前7个
         EC_file_list.sort(reverse=True)
         EC_target_file_list = EC_file_list[0:7]
         for file in EC_target_file_list:
+            # time += 1
+            # print(time)
             temp = file.split('_')
             local_file_name = temp[0] + '_' + temp[2]
             # print(local_file_name)
@@ -241,24 +234,45 @@ class VideoConferenceService:
         :param remote_file: 下载的远端文件名
         :return:
         """
+        # 日志
+        logger = logging.getLogger(__name__)
+        # 以下三行为清空上次文件
+        # 这为清空当前文件的logging 因为logging会包含所有的文件的logging
+        logging.Logger.manager.loggerDict.pop(__name__)
+        # 将当前文件的handlers 清空
+        logger.handlers = []
+        # 然后再次移除当前文件logging配置
+        logger.removeHandler(logger.handlers)
+        # 这里进行判断，如果logger.handlers列表为空，则添加，否则，直接去写日志
+        if not logger.handlers:
+            logger.setLevel(level=logging.INFO)
+            handler = logging.FileHandler('%slog.log' % self.local_dir)
+            handler.setLevel(logging.INFO)
+            formatter = logging.Formatter('%(asctime)s - %(filename)s - %(levelname)s - %(message)s')
+            handler.setFormatter(formatter)
+            console = logging.StreamHandler()
+            console.setLevel(logging.INFO)
+            logger.addHandler(handler)
+            logger.addHandler(console)
         now = datetime.datetime.now()
+
         if is_success:
             # print('已完成下载 :' + remote_file + ' 时间： ' + datetime.datetime.strftime(now, '%Y-%m-%d, %H:%M:%S'))
-            self.logger.info('已完成下载文件: %s' % (remote_file))
-
+            logger.info('已完成下载文件: %s' % (remote_file))
+            logger.removeHandler(logger.handlers)
         else:
 
             # print(remote_file + '下载失败, 请检查本地路径是否存在 ' + ' 时间： ' + datetime.datetime.strftime(now, '%Y-%m-%d, %H:%M:%S'))
-            self.logger.error('文件下载失败, 请检查本地路径是否存在: %s  %s' % (remote_file))
-
+            logger.error('文件下载失败, 请检查本地路径是否存在: %s  %s' % (remote_file))
+            logger.removeHandler(logger.handlers)
 
 def scheduleTask():
     times = 0;
     # 创建调度器：BlockingScheduler
     scheduler = BlockingScheduler()
     #scheduler.add_job(task, "cron", day_of_week="0-6", hour=13, minute=30)
-    scheduler.add_job(task, "cron", day_of_week="0-6", coalesce=True, misfire_grace_time=3600, hour=13, minute=30)
-    # scheduler.add_job(task, 'interval', seconds=60, id='task1')
+    #scheduler.add_job(task, "cron", day_of_week="0-6", coalesce=True, misfire_grace_time=3600, hour=13, minute=30)
+    scheduler.add_job(task, 'interval', seconds=60, id='task1')
 
     scheduler.start()
 

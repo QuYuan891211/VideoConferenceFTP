@@ -32,6 +32,7 @@ class SFTPManager:
         :param local_file_name: 本地新文件名
         :return:
         """
+        # print('调用下载任务')
         try:
             if os.path.isdir(local_dir):  # 判断本地参数是目录还是文件
                 remote_path = os.path.join(remote_dir, remote_file_name)
