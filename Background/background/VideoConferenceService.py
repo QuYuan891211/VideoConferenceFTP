@@ -256,9 +256,9 @@ def scheduleTask():
     times = 0;
     # 创建调度器：BlockingScheduler
     scheduler = BlockingScheduler()
-    # scheduler.add_job(task, "cron", day_of_week="0-6", hour=19, minute=30)
-    # scheduler.add_job(task, "cron", day_of_week="0-6", coalesce=True, misfire_grace_time=3600, hour=20, minute=20)
-    scheduler.add_job(task, 'interval', seconds=60, id='task1')
+    #scheduler.add_job(task, "cron", day_of_week="0-6", hour=13, minute=30)
+    scheduler.add_job(task, "cron", day_of_week="0-6", coalesce=True, misfire_grace_time=3600, hour=13, minute=30)
+    # scheduler.add_job(task, 'interval', seconds=60, id='task1')
 
     scheduler.start()
 
