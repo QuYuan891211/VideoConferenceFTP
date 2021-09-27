@@ -122,9 +122,13 @@ class VideoConferenceService:
         sftp_manager_instance = self.sftp_Manager.sftp_connect(self.host, int(self.port), self.username, self.password)
         # 2. 城市预报下载
         self.download_normal(sftp_manager_instance)
-        #3. EC文件下载
+        # 3. EC文件下载
         self.download_EC(sftp_manager_instance)
-        # 5.断开链接
+        # 4. GFS文件下载
+        self.download_GFS(sftp_manager_instance)
+        # 5. GRAPES文件下载
+        self.download_GRAPES(sftp_manager_instance)
+        # 6.断开链接
         self.sftp_Manager.sftp_close(sftp_manager_instance)
 
     # 1. 下载swell.gif   SWH2.gif   SWH4.gif  SWH6.gif -Hs.png
@@ -181,7 +185,53 @@ class VideoConferenceService:
             is_success = self.sftp_Manager.sftp_download_one_file(sftp_manager_instance, self.local_dir,
                                                                   self.target_EC,
                                                                   file, local_file_name)
-            # 3.1 记录日志
+            # 4.3 记录日志
+            self.save_log(is_success, file)
+
+
+        #5. 下载GFS文件
+    def download_GFS(self, sftp_manager_instance):
+        #5.1 获取EC文件夹下所有文件名
+        file_list = self.sftp_Manager.get_all_files_name(sftp_manager_instance, self.target_GFS)
+        GFS_file_list = []
+        for file in file_list:
+            if file[0:3] == 'GFS':
+                GFS_file_list.append(file)
+
+        #5.2按照文件名从大到小排序,取前6个
+        GFS_file_list.sort(reverse=True)
+        GFS_target_file_list = GFS_file_list[0:6]
+        for file in GFS_target_file_list:
+            temp = file.split('_')
+            local_file_name = temp[0] + '_' + temp[2]
+            # print(local_file_name)
+            is_success = self.sftp_Manager.sftp_download_one_file(sftp_manager_instance, self.local_dir,
+                                                                  self.target_GFS,
+                                                                  file, local_file_name)
+            # 5.3 记录日志
+            self.save_log(is_success, file)
+
+        # 6. 下载GRAPES文件
+
+    def download_GRAPES(self, sftp_manager_instance):
+        # 6.1 获取GRAPES文件夹下所有文件名
+        file_list = self.sftp_Manager.get_all_files_name(sftp_manager_instance, self.target_GRAPES)
+        GRAPES_file_list = []
+        for file in file_list:
+            if file[0:6] == 'GRAPES':
+                GRAPES_file_list.append(file)
+
+        # 6.2按照文件名从大到小排序,取前7个
+        GRAPES_file_list.sort(reverse=True)
+        GRAPES_target_file_list = GRAPES_file_list[0:7]
+        for file in GRAPES_target_file_list:
+            temp = file.split('_')
+            local_file_name = temp[0] + '_' + temp[2]
+            # print(local_file_name)
+            is_success = self.sftp_Manager.sftp_download_one_file(sftp_manager_instance, self.local_dir,
+                                                                  self.target_GRAPES,
+                                                                  file, local_file_name)
+            # 6.3 记录日志
             self.save_log(is_success, file)
 
     def save_log(self, is_success, remote_file):
