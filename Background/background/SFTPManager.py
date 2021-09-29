@@ -100,7 +100,7 @@ class SFTPManager:
         :return: sftp对象
         """
         sf = paramiko.Transport((host, port))
-        sf.banner_timeout = 300
+        sf.banner_timeout = 600
         sf.connect(username=username, password=password)
         sftp = paramiko.SFTPClient.from_transport(sf)
         sftp_manager_instance = SFTPManagerInstance(sf, sftp)
